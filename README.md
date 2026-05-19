@@ -3,7 +3,6 @@
 A public-facing **Streamlit** chatbot that answers customer questions from your own documents using **RAG** (Retrieval-Augmented Generation).
 
 **Live demo:** [rag-faq-bot.streamlit.app](https://rag-faq-bot.streamlit.app)  
-**Repository:** [github.com/mirza9037/RAG-FAQ-BOT](https://github.com/mirza9037/RAG-FAQ-BOT)
 
 **Stack:** LangChain · ChromaDB · Groq (LLaMA 3.1) · HuggingFace embeddings · Streamlit
 
