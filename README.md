@@ -1,8 +1,21 @@
-# Business FAQ Chatbot (RAG)
+# RAG FAQ Bot
 
-A public-facing **Streamlit** chatbot that answers customer questions using your own documents (RAG).
+A public-facing **Streamlit** chatbot that answers customer questions from your own documents using **RAG** (Retrieval-Augmented Generation).
+
+**Live demo:** [rag-faq-bot.streamlit.app](https://rag-faq-bot.streamlit.app)  
+**Repository:** [github.com/mirza9037/RAG-FAQ-BOT](https://github.com/mirza9037/RAG-FAQ-BOT)
 
 **Stack:** LangChain · ChromaDB · Groq (LLaMA 3.1) · HuggingFace embeddings · Streamlit
+
+---
+
+## Features
+
+- Chat UI powered by Streamlit
+- Answers grounded in your `docs/` (`.txt` and `.pdf`)
+- Per-session conversation memory (last 6 turns)
+- Free deploy on Streamlit Community Cloud
+- Auto-builds vector DB on first run (no `chroma_db` in Git)
 
 ---
 
@@ -12,11 +25,11 @@ A public-facing **Streamlit** chatbot that answers customer questions using your
 User question (browser)
         │
         ▼
-   Streamlit app (app.py)
+   app.py (Streamlit)
         │
-        ├── ChromaDB     ← vector search on docs/
-        ├── Groq LLM     ← grounded answer
-        └── Memory       ← last 6 turns per session
+        ├── chroma_store.py  → ChromaDB (PersistentClient)
+        ├── rag_chain.py     → retrieve + Groq LLM
+        └── memory_store.py  → chat history
 ```
 
 ---
@@ -26,16 +39,19 @@ User question (browser)
 ### 1. Clone and install
 
 ```bash
+git clone https://github.com/mirza9037/RAG-FAQ-BOT.git
+cd RAG-FAQ-BOT
 python -m venv venv
 venv\Scripts\activate          # Windows
-# source venv/bin/activate   # Mac/Linux
+# source venv/bin/activate     # Mac/Linux
 pip install -r requirements.txt
 ```
 
 ### 2. Add your Groq API key
 
 ```bash
-copy .env.example .env
+copy .env.example .env   # Windows
+# cp .env.example .env   # Mac/Linux
 ```
 
 Edit `.env` and set `GROQ_API_KEY`. Get a free key at [console.groq.com](https://console.groq.com).
@@ -44,7 +60,7 @@ Edit `.env` and set `GROQ_API_KEY`. Get a free key at [console.groq.com](https:/
 
 Put `.txt` or `.pdf` files in `docs/` (see `docs/sample_faq.txt` for an example).
 
-### 4. Build the knowledge base (first time)
+### 4. Build the knowledge base (optional — app can do this on first run)
 
 ```bash
 python ingest.py
@@ -60,88 +76,77 @@ Open **http://localhost:8501**
 
 ---
 
-## Deploy for everyone (Streamlit Community Cloud) — recommended
+## Deploy on Streamlit Cloud
 
-Free hosting with a public URL like `https://your-app.streamlit.app`.
-
-### Step 1 — Push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: Streamlit RAG chatbot"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git push -u origin main
-```
-
-> **Important:** Never commit `.env`. Your API key goes only in Streamlit Cloud secrets.
-
-### Step 2 — Deploy on Streamlit Cloud
-
-1. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
-2. Click **New app** → select your repository.
-3. Set **Main file path** to `app.py`.
-4. Open **Advanced settings → Secrets** and paste:
+1. Fork or use this repo: `mirza9037/RAG-FAQ-BOT`
+2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**
+3. **Main file:** `app.py` · **Branch:** `main`
+4. **Python version:** **3.12** (required — see `.python-version`)
+5. **Secrets** (Settings → Secrets):
 
 ```toml
 GROQ_API_KEY = "gsk_your_actual_key_here"
 ```
 
-5. Click **Deploy**. First boot may take a few minutes (downloads embedding model + builds ChromaDB from `docs/`).
+6. **Deploy** — first boot may take several minutes (embeddings + ingest)
 
-**Python version:** This repo includes `.python-version` set to **3.12**. If deploy fails with `cffi` / `zstandard` / `ffi.h` errors, open your app on Streamlit Cloud → **Settings** → set **Python version** to **3.12** (not 3.14), then **Reboot app**.
-
-### Step 3 — Share the link
-
-Copy the app URL from the dashboard and share it — anyone can chat without installing anything.
-
----
-
-## Updating documents
-
-1. Edit or add files in `docs/`
-2. Locally: run `python ingest.py` again
-3. On Streamlit Cloud: delete the app cache or redeploy; the app auto-runs ingest if `chroma_db/` is missing
+After deploy, confirm the UI shows **Build 1.2.0** under the title.
 
 ---
 
 ## Project structure
 
 ```
-├── app.py              ← Streamlit UI (entry point for deploy)
-├── ingest.py           ← docs/ → chroma_db/
-├── rag_chain.py        ← RAG + Groq
-├── memory_store.py     ← conversation memory
-├── docs/               ← your knowledge base
-├── chroma_db/          ← vector store (optional in git)
+RAG-FAQ-BOT/
+├── app.py                    ← Streamlit UI (deploy entry point)
+├── chroma_store.py           ← ChromaDB PersistentClient helpers
+├── ingest.py                 ← docs/ → chroma_db/
+├── rag_chain.py              ← RAG + Groq
+├── memory_store.py           ← conversation memory
+├── docs/
+│   └── sample_faq.txt        ← example business FAQ
 ├── requirements.txt
+├── .python-version           ← 3.12 for Streamlit Cloud
 ├── .env.example
 └── .streamlit/
     ├── config.toml
     └── secrets.toml.example
 ```
 
+`chroma_db/` is created at runtime and is **not** committed (see `.gitignore`).
+
+---
+
+## Updating documents
+
+1. Edit or add files in `docs/`
+2. **Locally:** run `python ingest.py`
+3. **Streamlit Cloud:** reboot the app (or clear cache); ingest runs automatically if the DB is empty
+
 ---
 
 ## Environment variables
 
-| Variable       | Required | Description        |
-|----------------|----------|--------------------|
-| `GROQ_API_KEY` | Yes      | Groq API key       |
+| Variable       | Required | Description   |
+|----------------|----------|---------------|
+| `GROQ_API_KEY` | Yes      | Groq API key  |
+
+Never commit `.env` or real API keys to GitHub.
 
 ---
 
 ## Troubleshooting
 
-**"Missing GROQ_API_KEY" on Streamlit Cloud**  
-Add the key under App → Settings → Secrets (see format above).
+| Issue | Fix |
+|-------|-----|
+| Missing `GROQ_API_KEY` | Add secret in Streamlit Cloud Settings |
+| `cffi` / `zstandard` / `ffi.h` on deploy | Set Python **3.12**, not 3.14 → Reboot app |
+| Chroma `ValueError` / tenant error | Reboot app (uses `PersistentClient`; DB rebuilds on cloud) |
+| Old code still running on Cloud | Manage app → **Reboot**; check for **Build 1.2.0** in UI |
+| Slow first load | Normal — downloads embedding model (~80MB) + ingests docs |
 
-**Slow first load on cloud**  
-The app downloads the embedding model (~80MB) and may run ingest once. Later loads are faster.
+---
 
-**ChromaDB error**  
-Run `python ingest.py` locally, or let the app build the DB on first run (spinner shown).
+## License
 
-**Deploy fails with `cffi`, `zstandard`, or `ffi.h`**  
-Streamlit defaulted to Python 3.14. Use Python **3.12** (`.python-version` in this repo, or set it in Cloud app Settings → Reboot).
+MIT — use freely for learning and demos.
