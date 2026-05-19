@@ -146,7 +146,3 @@ Never commit `.env` or real API keys to GitHub.
 | Slow first load | Normal — downloads embedding model (~80MB) + ingests docs |
 
 ---
-
-## License
-
-MIT — use freely for learning and demos.
