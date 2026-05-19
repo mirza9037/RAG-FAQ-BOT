@@ -2,14 +2,13 @@ import os
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
 from langchain.chains import ConversationalRetrievalChain
 from langchain.prompts import PromptTemplate
+
+from chroma_store import open_vectorstore
 from memory_store import get_memory
 
 load_dotenv()
-
-DB_DIR = "chroma_db"
 
 CONDENSE_PROMPT = PromptTemplate.from_template(
     """Given the chat history and a follow-up question, rewrite the follow-up as a standalone question.
@@ -44,7 +43,7 @@ def _init():
     if _llm is not None:
         return
     _embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    db = Chroma(persist_directory=DB_DIR, embedding_function=_embeddings)
+    db = open_vectorstore(_embeddings)
     _retriever = db.as_retriever(search_kwargs={"k": 3})
     _llm = ChatGroq(
         model="llama-3.1-8b-instant",

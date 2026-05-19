@@ -15,5 +15,5 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Optional: uncomment to rebuild DB on each deploy instead of committing it
-# chroma_db/
+# Vector DB is rebuilt on deploy (avoids Chroma version mismatch on Streamlit Cloud)
+chroma_db/

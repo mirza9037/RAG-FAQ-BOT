@@ -6,6 +6,7 @@ os.environ.setdefault("LANGCHAIN_TRACING_V2", "false")
 import streamlit as st
 from dotenv import load_dotenv
 
+from chroma_store import is_db_ready
 from ingest import ingest
 from memory_store import clear_memory
 from rag_chain import ask
@@ -32,8 +33,8 @@ if not os.getenv("GROQ_API_KEY"):
     )
     st.stop()
 
-# Build vector DB on first run (local or cloud)
-if not os.path.exists("chroma_db/chroma.sqlite3"):
+# Build vector DB on first run (or if old/incompatible DB from another Chroma version)
+if not is_db_ready():
     with st.spinner("Building knowledge base from docs/ (first run only)..."):
         ingest()
 
