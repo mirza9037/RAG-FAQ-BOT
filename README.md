@@ -90,6 +90,8 @@ GROQ_API_KEY = "gsk_your_actual_key_here"
 
 5. Click **Deploy**. First boot may take a few minutes (downloads embedding model + builds ChromaDB from `docs/`).
 
+**Python version:** This repo includes `.python-version` set to **3.12**. If deploy fails with `cffi` / `zstandard` / `ffi.h` errors, open your app on Streamlit Cloud → **Settings** → set **Python version** to **3.12** (not 3.14), then **Reboot app**.
+
 ### Step 3 — Share the link
 
 Copy the app URL from the dashboard and share it — anyone can chat without installing anything.
@@ -140,3 +142,6 @@ The app downloads the embedding model (~80MB) and may run ingest once. Later loa
 
 **ChromaDB error**  
 Run `python ingest.py` locally, or let the app build the DB on first run (spinner shown).
+
+**Deploy fails with `cffi`, `zstandard`, or `ffi.h`**  
+Streamlit defaulted to Python 3.14. Use Python **3.12** (`.python-version` in this repo, or set it in Cloud app Settings → Reboot).

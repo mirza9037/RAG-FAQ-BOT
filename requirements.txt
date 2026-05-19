@@ -1,3 +1,8 @@
+# Streamlit Cloud: Python 3.12 required (see .python-version). Python 3.14 breaks zstandard/cffi builds.
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+
 langchain==0.3.25
 langchain-groq==0.3.2
 langchain-community==0.3.24
@@ -7,3 +12,4 @@ sentence-transformers==3.4.1
 pypdf==5.4.0
 python-dotenv==1.1.0
 streamlit==1.45.1
+zstandard>=0.23.0

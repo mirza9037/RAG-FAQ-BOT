@@ -1,5 +1,8 @@
 import os
 
+# Avoid langsmith/zstandard build issues on cloud; not needed for this demo
+os.environ.setdefault("LANGCHAIN_TRACING_V2", "false")
+
 import streamlit as st
 from dotenv import load_dotenv
 
