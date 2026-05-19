@@ -9,9 +9,11 @@ from dotenv import load_dotenv
 from chroma_store import is_db_ready
 from ingest import ingest
 from memory_store import clear_memory
-from rag_chain import ask
+from rag_chain import ask, warm_up
 
 load_dotenv()
+
+APP_VERSION = "1.2.0"  # bump when deploying — visible in UI to confirm latest code
 
 # Streamlit Community Cloud stores secrets in the dashboard (not .env)
 if "GROQ_API_KEY" in st.secrets:
@@ -23,6 +25,15 @@ st.set_page_config(
     layout="centered",
 )
 
+
+@st.cache_resource(show_spinner="Loading knowledge base and models (first time may take a few minutes)...")
+def bootstrap():
+    if not is_db_ready():
+        ingest()
+    warm_up()
+    return APP_VERSION
+
+
 st.title("💬 Business FAQ Chatbot")
 st.caption("RAG-powered assistant — answers from your business documents")
 
@@ -33,10 +44,8 @@ if not os.getenv("GROQ_API_KEY"):
     )
     st.stop()
 
-# Build vector DB on first run (or if old/incompatible DB from another Chroma version)
-if not is_db_ready():
-    with st.spinner("Building knowledge base from docs/ (first run only)..."):
-        ingest()
+build = bootstrap()
+st.caption(f"Build **{build}** — if you still see errors, use *Manage app → Reboot* on Streamlit Cloud")
 
 TEST_USER = "demo_user"
 

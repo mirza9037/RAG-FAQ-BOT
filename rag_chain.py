@@ -43,13 +43,27 @@ def _init():
     if _llm is not None:
         return
     _embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    db = open_vectorstore(_embeddings)
+    try:
+        db = open_vectorstore(_embeddings)
+    except Exception:
+        # Stale or incompatible chroma_db folder — rebuild once
+        from chroma_store import reset_db
+        from ingest import ingest
+
+        reset_db()
+        ingest()
+        db = open_vectorstore(_embeddings)
     _retriever = db.as_retriever(search_kwargs={"k": 3})
     _llm = ChatGroq(
         model="llama-3.1-8b-instant",
         temperature=0.2,
         api_key=os.getenv("GROQ_API_KEY"),
     )
+
+
+def warm_up():
+    """Load models and vector store once at startup."""
+    _init()
 
 def ask(user_id: str, question: str) -> str:
     """Ask a question with per-user memory."""
